@@ -32,6 +32,7 @@ def get_outages(
     limit: int = Query(10, le=100),
     offset: int = 0
 ):
+    print(f"DEBUG BACKEND: He recibido una petición para filtrar por Planta ID: {facility_id}")
     conn = get_db_connection()
     
     # dynamic query construction
@@ -82,12 +83,14 @@ def health_check():
         "storage_file": "missing"
     }
     
+    # 1. Verificar si el archivo de la DB existe físicamente
     if os.path.exists(DATABASE):
         health_status["storage_file"] = "exists"
         
+
         try:
             conn = sqlite3.connect(DATABASE)
-            conn.execute("SELECT 1") 
+            conn.execute("SELECT 1") # Una consulta ultra rápida
             conn.close()
             health_status["database"] = "connected"
         except Exception as e:
@@ -97,6 +100,17 @@ def health_check():
         health_status["status"] = "incomplete"
 
     return health_status
+
+@app.get("/facilities")
+def get_facilities():
+    conn = get_db_connection()
+    try:
+        # Obtenemos el catálogo único de plantas
+        cursor = conn.execute("SELECT facility_id, facility_name FROM Facility ORDER BY facility_name")
+        rows = cursor.fetchall()
+        return [{"id": r["facility_id"], "name": r["facility_name"]} for r in rows]
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
     import uvicorn
