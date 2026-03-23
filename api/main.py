@@ -1,116 +1,107 @@
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI, Query, HTTPException
 import sqlite3
-import pandas as pd
-from typing import Optional 
-import sys
+import requests
 import os
+import sys
+from typing import Optional
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..'))
-sys.path.append(PROJECT_ROOT)
-from connector import fetch_nuclear_outages  
-from data.storage import run_storage
 
-app = FastAPI(title="Nuclear Outage API")
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+try:
+    import connector  
+    from data import storage  
+    print("DEBUG: Internal connections successfully established.")
+except ImportError as e:
+    print(f"DEBUG: Error importing modules: {e}")
+    from connector import fetch_nuclear_outages
+    from data.storage import run_storage
 
 DATABASE = os.path.join(PROJECT_ROOT, "data", "nuclear_outages.db")
 
+app = FastAPI(title="Frontend Interface")
+templates = Jinja2Templates(directory="templates")
+API_URL = "http://localhost:8000"
+
 def get_db_connection():
     if not os.path.exists(DATABASE):
-        raise HTTPException(status_code=500, detail="Database not found. Run /refresh first.")
-    
+        raise HTTPException(status_code=500, detail="Database not found.")
     conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row  # allows access by column name
+    conn.row_factory = sqlite3.Row
     return conn
 
-# ENDPOINT /data
+# /DATA 
+
 @app.get("/data")
 def get_outages(
-    facility_id: Optional[int] = None,
+    facility_id: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    limit: int = Query(10, le=100),
-    offset: int = 0
+    limit: int = Query(50, le=100)
 ):
-    print(f"DEBUG BACKEND: He recibido una petición para filtrar por Planta ID: {facility_id}")
     conn = get_db_connection()
-    
-    # dynamic query construction
     query = "SELECT * FROM Outage_report WHERE 1=1"
     params = []
 
-    if facility_id:
-        query += " AND facility_id = ?"
-        params.append(facility_id)
-    if start_date:
+    if facility_id and facility_id.strip() not in ["", "None"]:
+        query += " AND CAST(facility_id AS TEXT) = ?"
+        params.append(facility_id.strip())
+
+    if start_date and start_date.strip():
         query += " AND date >= ?"
         params.append(start_date)
-    if end_date:
+
+    if end_date and end_date.strip():
         query += " AND date <= ?"
         params.append(end_date)
 
-    # pagination
-    query += f" LIMIT {limit} OFFSET {offset}"
+    query += f" LIMIT {limit}"
     
     try:
         cursor = conn.execute(query, params)
-        rows = cursor.fetchall()
-        # Convert SQLite rows to a dictionary list for JSON response
-        data = [dict(row) for row in rows]
-        return {"count": len(data), "limit": limit, "offset": offset, "data": data}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        data = [dict(row) for row in cursor.fetchall()]
+        return {"data": data}
     finally:
         conn.close()
 
-# ENDPOINT /refresh
-@app.get("/refresh")
-def refresh():
-    try:
-        fetch_nuclear_outages() 
-        print("Updating database")
-        message = run_storage()
-        return {"status": "success", "message": "Updated data"}
-    except Exception as e:
-        print(f"Error refresing data")
-        raise HTTPException(status_code=500, detail=f"Error al refrescar: {str(e)}")
-
-@app.get("/health")
-def health_check():
-    health_status = {
-        "status": "online",
-        "database": "disconnected",
-        "storage_file": "missing"
-    }
-    
-    # 1. Verificar si el archivo de la DB existe físicamente
-    if os.path.exists(DATABASE):
-        health_status["storage_file"] = "exists"
-        
-
-        try:
-            conn = sqlite3.connect(DATABASE)
-            conn.execute("SELECT 1") # Una consulta ultra rápida
-            conn.close()
-            health_status["database"] = "connected"
-        except Exception as e:
-            health_status["database"] = f"error: {str(e)}"
-            health_status["status"] = "degraded"
-    else:
-        health_status["status"] = "incomplete"
-
-    return health_status
-
+#  /FACILITY
 @app.get("/facilities")
 def get_facilities():
     conn = get_db_connection()
     try:
-        # Obtenemos el catálogo único de plantas
-        cursor = conn.execute("SELECT facility_id, facility_name FROM Facility ORDER BY facility_name")
-        rows = cursor.fetchall()
-        return [{"id": r["facility_id"], "name": r["facility_name"]} for r in rows]
+        cursor = conn.execute("SELECT DISTINCT facility_id, facility_name FROM Facility ORDER BY facility_name")
+        return [{"id": r["facility_id"], "name": r["facility_name"]} for r in cursor.fetchall()]
+    except:
+        return []
     finally:
         conn.close()
+# Some endpoint to check connection with the API
+@app.get("/health")
+def health_check():
+    db_exists = os.path.exists(DATABASE)
+    status = {"status": "online", "database": "disconnected", "storage_file": "exists" if db_exists else "missing"}
+    if db_exists:
+        try:
+            conn = sqlite3.connect(DATABASE); conn.execute("SELECT 1"); conn.close()
+            status["database"] = "connected"
+        except Exception as e: status["status"] = "degraded"; status["database"] = str(e)
+    return status
+
+# /REFRESH
+@app.get("/refresh")
+def refresh():
+    try:
+        fetch_nuclear_outages() 
+        run_storage()
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

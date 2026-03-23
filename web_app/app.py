@@ -21,6 +21,8 @@ async def home(request: Request, facility_id: Optional[int] = None):
         if facility_id: params["facility_id"] = facility_id
         
         data_res = requests.get(f"{API_URL}/data", params=params)
+        print(f"DEBUG WEB: Status Code API: {data_res.status_code}")
+        print(f"DEBUG WEB: Datos recibidos: {data_res.text[:200]}")
         outages = data_res.json().get("data", [])
 
         return templates.TemplateResponse(
