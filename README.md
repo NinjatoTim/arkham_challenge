@@ -10,6 +10,7 @@ Finally, I implemented the API using FastAPI, and with the same technology and s
 ---
 #### directory and explication:
 
+```bash
 │arkham_challenge
 ├── api                     ---> API (part 3 of the challenge)
 │   ├── main.py
@@ -26,7 +27,7 @@ Finally, I implemented the API using FastAPI, and with the same technology and s
 └── web_app                 ---> Web app (part 4 of the challenge)
     ├── app.py
     └── templates
-
+```
 ## Quick Start
 
 Follow these steps to get the project running on your local machine.
