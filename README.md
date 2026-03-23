@@ -132,6 +132,6 @@ Filter outages between custom `start_date` and `end_date` values for precise ana
     }
   ]
 }
-
+```
 
 ![Preview](./image1.png)
