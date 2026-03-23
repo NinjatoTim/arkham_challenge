@@ -56,7 +56,7 @@ def fetch_nuclear_outages():
         logging.error("Error: La variable de entorno 'EIA_API_KEY' no está configurada.")
         return
 
-    url = "https://api.eia.gov/v2/nuclear-outages/us-nuclear-outages/data/"
+    url = "https://api.eia.gov/v2/nuclear-outages/generator-nuclear-outages/data/"
     all_data = []
     offset = 0
     length = 5000  # The API can only return 5000 rows in JSON format
@@ -91,7 +91,7 @@ def fetch_nuclear_outages():
                     all_data.extend(data)
                     offset += len(data)
                     pbar.update(len(data))
-                    time.sleep(0.2)
+                    #time.sleep(0.2)
                          # little break for the server
                 except requests.exceptions.RequestException as e:
                     logging.warning(f"Network fail, retriying in 15 seconds... {e}")
