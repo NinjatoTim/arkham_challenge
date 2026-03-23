@@ -1,4 +1,4 @@
-# ☢️ Arkham Technical Challenge: Nuclear Outage Tracker
+# ☢️ Arkham Technical Challenge
 
 This repository contains the solution for the **Software Engineer** role technical challenge at Arkham. It is a full-stack application designed to monitor, store, and visualize nuclear power plant outages across the U.S.
 
@@ -8,16 +8,18 @@ This repository contains the solution for the **Software Engineer** role technic
 
 Follow these steps to get the project running on your local machine.
 
-### 1. Environment Setup
-Ensure you have **Python 3.10+** installed. We recommend using a virtual environment to keep dependencies isolated.
+
+## API Key setup
+
+### On Linux
 
 ```bash
 # Create and activate virtual environment
 python3 -m venv envy
-source envy/bin/activate  # On Linux/macOS
+source envy/bin/activate 
 ```
 
-# On macOS, you can set the environment variable temporarily for the current session or permanently for all future sessions.
+### On macOS, you can set the environment variable temporarily for the current session or permanently for all future sessions.
 
 -Temporary (Current Terminal Only)
 
@@ -28,11 +30,13 @@ export EIA_API_KEY="your_secret_key_here"
 ```
 -To make it permanent, add the line above to your ~/.bashrc file
 
-# On Windows (PowerShell):
+### On Windows (PowerShell):
 
 ```PowerShell
 $env:EIA_API_KEY = "your_secret_key_here"
 ```
+### 1. Environment Setup
+Ensure you have **Python 3.10+** installed. We recommend using a virtual environment to keep dependencies isolated.
 
 2. Install dependencies
 ```bash
@@ -56,7 +60,7 @@ python web_app/app.py
 ```
 (Runs on http://localhost:3000. Provides the user interface.)
 
-# Assumptions Made
+## Assumptions Made
 -The three available API routes for querying data outages have been stored.
 
 -I assumed that since the test was in English, it should be done in English.
