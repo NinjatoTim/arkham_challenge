@@ -2,6 +2,11 @@
 
 This repository contains the solution for the **Software Engineer** role technical challenge at Arkham. It is a full-stack application designed to monitor, store, and visualize nuclear power plant outages across the U.S.
 
+The first thing I did was check the API page, which included a video about the version 2 update and how to use the API. 
+Then, in Postman, I ran a couple of queries to familiarize myself with the API, and subsequently started writing the connection.py script. 
+Afterward, I analyzed the "nuclear outage" data, and that's how I created the ER model, which underwent some modifications over time. 
+Finally, I implemented the API using FastAPI, and with the same technology and some html with boopstrap style, I set up the web service to display the data.
+
 ---
 #### directory and explication:
 
