@@ -3,6 +3,24 @@
 This repository contains the solution for the **Software Engineer** role technical challenge at Arkham. It is a full-stack application designed to monitor, store, and visualize nuclear power plant outages across the U.S.
 
 ---
+#### directory and explication:
+
+│arkham_challenge
+├── api                     ---> API (part 3 of the challenge)
+│   ├── main.py
+│   └── 
+├── data                   ---> ER Model (part 2 of the challenge)
+│   ├── nuclear_outages.db
+│   ├── storage.py
+│   ├── nuclear outages.png
+│   └── test.py
+├── connector.py            ---> Connector script (part 1 of the challenge)
+├── nuclear_outages.parquet
+├── requirements.txt
+├── README.md
+└── web_app                 ---> Web app (part 4 of the challenge)
+    ├── app.py
+    └── templates
 
 ## Quick Start
 
